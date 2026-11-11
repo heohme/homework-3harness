@@ -1,0 +1,48 @@
+apps/local-harness/docs/ARCHITECTURE.md
+  h_b24e43a1f3abb7 1-608
+apps/local-harness/docs/CORE_SEQUENCES.md
+  h_b24e43a1f3abb7 1-488
+apps/local-harness/docs/diagrams/arch-01-runtime.mmd
+  h_b24e43a1f3abb7 1-40
+apps/local-harness/docs/diagrams/arch-01-runtime.svg
+  h_b24e43a1f3abb7 1
+apps/local-harness/docs/diagrams/arch-02-modules.mmd
+  h_b24e43a1f3abb7 1-40
+apps/local-harness/docs/diagrams/arch-02-modules.svg
+  h_b24e43a1f3abb7 1
+apps/local-harness/docs/diagrams/arch-03-plugin-state.mmd
+  h_b24e43a1f3abb7 1-13
+apps/local-harness/docs/diagrams/arch-03-plugin-state.svg
+  h_b24e43a1f3abb7 1
+apps/local-harness/docs/diagrams/arch-04-run-state.mmd
+  h_b24e43a1f3abb7 1-16
+apps/local-harness/docs/diagrams/arch-04-run-state.svg
+  h_b24e43a1f3abb7 1
+apps/local-harness/docs/diagrams/seq-01-plugin-lifecycle.mmd
+  h_b24e43a1f3abb7 1-60
+apps/local-harness/docs/diagrams/seq-01-plugin-lifecycle.svg
+  h_b24e43a1f3abb7 1
+apps/local-harness/docs/diagrams/seq-02-manual-tool-ipc-broker.mmd
+  h_b24e43a1f3abb7 1-66
+apps/local-harness/docs/diagrams/seq-02-manual-tool-ipc-broker.svg
+  h_b24e43a1f3abb7 1
+apps/local-harness/docs/diagrams/seq-03-agent-model-write-approval.mmd
+  h_b24e43a1f3abb7 1-67
+apps/local-harness/docs/diagrams/seq-03-agent-model-write-approval.svg
+  h_b24e43a1f3abb7 1
+apps/local-harness/docs/diagrams/seq-04-cancel-disable-uninstall-drain.mmd
+  h_b24e43a1f3abb7 1-64
+apps/local-harness/docs/diagrams/seq-04-cancel-disable-uninstall-drain.svg
+  h_b24e43a1f3abb7 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "3bca2b0d209771b7327eb4746619c245a0f38d34",
+  "prompts": {},
+  "humans": {
+    "h_b24e43a1f3abb7": {
+      "author": "贺庆阳 <heqingyang@xiaohongshu.com>"
+    }
+  }
+}
