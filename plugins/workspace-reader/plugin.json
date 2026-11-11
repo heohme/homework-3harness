@@ -1,0 +1,61 @@
+{
+  "protocolVersion": 1,
+  "id": "workspace-reader",
+  "name": "工作区检索",
+  "version": "1.0.0",
+  "description": "只通过授权能力列出、读取和逐行检索本地文本工作区。",
+  "author": "LOOM examples",
+  "entry": "index.mjs",
+  "permissions": ["workspace.read"],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "root": {"type": "string", "minLength": 1, "maxLength": 1024, "default": "./examples/workspace", "description": "授权读取的根目录；相对路径由宿主解析"},
+      "maxResults": {"type": "integer", "minimum": 1, "maximum": 100, "default": 8, "description": "list/search 的结果上限"}
+    },
+    "required": ["root", "maxResults"],
+    "additionalProperties": false
+  },
+  "tools": [
+    {
+      "name": "list",
+      "description": "递归列出授权目录内可读取的文本文件，结果数量受配置限制。",
+      "mutates": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {"type": "string", "minLength": 1, "maxLength": 1024, "default": ".", "description": "根目录内的相对目录"},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 100, "description": "本次上限，不超过 config.maxResults"}
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "read",
+      "description": "读取授权目录内一个文本文件；宿主最多返回 64 KiB。",
+      "mutates": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {"path": {"type": "string", "minLength": 1, "maxLength": 1024, "description": "根目录内的相对文件路径"}},
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "search",
+      "description": "实际读取文本并按行进行字面量检索，不使用正则；返回相对路径、1 起始行号和命中片段。",
+      "mutates": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string", "minLength": 1, "maxLength": 200},
+          "path": {"type": "string", "minLength": 1, "maxLength": 1024, "default": "."},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+          "caseSensitive": {"type": "boolean", "default": false}
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

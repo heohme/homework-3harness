@@ -1,0 +1,40 @@
+flowchart TB
+  U[本机用户]
+  subgraph CLIENT[交互入口]
+    CLI[CLI 进程]
+    WEB[浏览器控制台]
+  end
+  subgraph HOST[Web 宿主进程]
+    API[回环 HTTP 与会话校验]
+    H[Harness 生命周期与运行协调]
+    A[有界 Agent Loop]
+    M[模型 HTTP 适配器]
+    R[通用插件 Runner]
+    B[能力 Broker]
+    S[Store 文件与锁]
+  end
+  subgraph LOCAL[同机资源]
+    DATA[私有数据目录]
+    WORK[授权文本工作区]
+    O[本地模型服务]
+  end
+  P[一次调用一个插件子进程]
+  REMOTE[可选远程 HTTPS 模型]
+  U --> CLI
+  U --> WEB
+  WEB -->|JSON 与 Bearer token| API
+  API --> H
+  CLI -->|本进程自己的 Harness| DATA
+  H --> A
+  A --> M
+  A -->|execute| H
+  H --> R
+  H --> S
+  R <-->|JSON IPC| P
+  P -->|ctx.call 经 IPC| B
+  B --> S
+  B --> WORK
+  S --> DATA
+  M --> O
+  M -.->|显式允许外发| REMOTE
+  P -.->|可信代码仍可绕过 Broker| WORK

@@ -1,0 +1,11 @@
+.harness/
+.harness-*/
+playwright-report/
+test-results/
+node_modules/
+.work/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log

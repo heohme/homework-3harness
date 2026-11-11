@@ -1,0 +1,66 @@
+sequenceDiagram
+    actor U as 用户
+    participant E as CLI或HTTP
+    participant H as Harness
+    participant V as Schema校验
+    participant S as Store
+    participant M as 清单快照
+    participant R as runner
+    participant W as worker
+    participant B as broker
+    Note over U,E: Web写工具先确认，CLI是直接指令
+    U->>E: 运行工具与参数
+    E->>H: runTool
+    H->>H: start 创建run和控制器
+    H-->>E: 内存run记录
+    E-->>U: HTTP接受202
+    Note over E,H: 202不等于执行成功
+    H->>S: 查启用工具与插件
+    H->>V: 对象与输入Schema校验
+    H->>H: 检查并占用activePlugins
+    H->>S: 获取插件运行锁
+    H->>S: 复查取消和当前记录
+    H->>M: 重算安装快照摘要
+    alt 参数锁或状态检查失败
+        H->>H: 抛出校验或状态错误
+    else 检查通过
+        H->>H: 记录plugin-start事件
+        H->>R: executePlugin
+        R->>W: fork并发送execute
+        Note over R,W: 精简环境，专用JSON IPC
+        W->>W: import并调用entry
+        loop 每个ctx.call按chain串行
+            W->>R: rpc 方法与请求id
+            R->>B: 排队调用能力
+            B->>S: 复查启用摘要配置与授权
+            alt storage.get
+                B->>S: 读取插件JSON
+                S-->>B: key值或null
+            else storage.set且允许写
+                B->>S: update取得写锁
+                B->>S: 锁内再复查取消与授权
+                B->>S: 临时文件加rename
+                S-->>B: 提交完成
+            else 能力或权限不符
+                B->>B: 生成能力错误
+            end
+            B-->>R: 值或错误
+            R-->>W: rpc-result对应id
+            W->>W: 兑现或拒绝Promise
+        end
+        W-->>R: result或error
+        R->>W: 结束插件进程
+        R->>B: cancel设置收尾闸门
+        R->>R: 等待在途chain结束
+        R-->>H: 最终值或错误
+        H->>H: 保留本次返回值或错误
+    end
+    H->>S: 释放已取得的运行锁
+    H->>H: 清除activePlugins占用
+    H->>H: start归类success或失败
+    H->>S: remember写摘要历史
+    Note over H,S: 正文结果和详细事件不入历史
+    U->>E: 查询最终状态
+    E->>H: state或等待completion
+    H-->>E: 终态与内存结果
+    E-->>U: 显示结果或错误

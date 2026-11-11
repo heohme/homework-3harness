@@ -1,0 +1,64 @@
+sequenceDiagram
+    actor U as 用户
+    participant E as CLI或HTTP
+    participant H as 管理宿主
+    participant O as 执行宿主
+    participant R as runner
+    participant B as broker
+    participant S as Store锁
+    participant F as 本地文件
+    O->>S: 持有插件运行锁
+    O->>R: 执行插件调用
+    R->>B: 在途storage.set
+    B->>S: 初次授权检查
+    opt 用户请求取消run
+        U->>E: cancel runId
+        E->>H: cancel
+        alt 属于同一Harness
+            H->>R: controller.abort
+            R->>B: finish设置halted
+        else 属于其他宿主
+            H-->>E: 无本机控制器
+            Note over H,O: 不能远程abort该任务
+        end
+    end
+    alt 未取消且写先取得写锁
+        B->>S: 锁内复查仍有效
+        B->>F: 原子替换存储JSON
+        B-->>R: 写入完成
+        Note over B,F: 后续取消不回滚此写
+    else 写入仍延迟待锁
+        Note over B,S: 保留在途工作，尚未提交
+    end
+    U->>E: 禁用或卸载插件
+    E->>H: disable或uninstall
+    H->>H: cancelPlugin 本机abort
+    Note over H,O: 其他宿主只靠复查或超时收尾
+    H->>S: write锁内撤权禁用
+    S->>F: 保存enabled为false与空grants
+    opt 延迟写此后取得写锁
+        B->>S: update锁内再ensure
+        S-->>B: 取消或授权已撤销
+        B-->>R: 拒绝写，不重建存储
+    end
+    R->>R: 取消错误或超时结束
+    R->>B: finish设置收尾闸门
+    R->>R: 等待已启动chain排空
+    R-->>O: 返回结果或失败
+    O->>S: release插件运行锁
+    opt 本次请求为卸载
+        H->>S: 等待插件运行锁
+        alt 在有界等待内取得
+            H->>S: 再获取全局写锁
+            H->>F: 删除代码快照与插件存储
+            H->>S: 原子保存移除后的注册表
+            H->>S: 释放写锁与运行锁
+            H-->>E: ok true
+            E-->>U: 卸载完成
+        else 运行锁或写锁繁忙
+            H-->>E: STATE_BUSY或实际错误
+            E-->>U: 卸载未成功，需检查重试
+            Note over H,F: 先前禁用可能已完成
+        end
+    end
+    Note over R,F: kill不撤销已完成的磁盘提交

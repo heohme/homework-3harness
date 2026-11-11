@@ -1,0 +1,67 @@
+sequenceDiagram
+    actor U as 用户
+    participant E as CLI或HTTP
+    participant H as Harness
+    participant A as Agent循环
+    participant M as 模型适配
+    participant L as 模型服务
+    participant P as 批准簿
+    participant X as 工具执行
+    participant S as Store
+    U->>E: 提交Agent任务
+    E->>H: runAgent prompt
+    H->>S: 读取模型配置与工具目录
+    H->>M: checkModel
+    H->>A: 捕获此次config与tools
+    Note over H,A: 逻辑快照，不是全局冻结
+    H-->>E: start返回run
+    E-->>U: HTTP接受202
+    loop 有限模型轮次
+        A->>A: 检查取消并记录model事件
+        A->>M: chat 对话与tools
+        M->>L: Ollama或兼容HTTP
+        L-->>M: assistant消息
+        M-->>A: 校验后消息
+        alt 无tool_calls
+            A->>A: 检查非空回复
+            A-->>H: answer与调用统计
+            Note over A,H: 返回后结束循环
+        else 有tool_calls
+            A->>A: 检查每轮与累计限制
+            loop tool_calls逐个顺序处理
+                A->>A: 查快照工具并解析参数JSON
+                Note over A,X: 此时尚未做输入Schema校验
+                opt 已解析且工具mutates
+                    A->>H: approve 名称与参数
+                    H->>P: 新建callId关联runId
+                    H->>H: 状态awaiting_approval
+                    H-->>E: approval事件与参数
+                    E-->>U: 等待本次写批准
+                    alt 用户批准或拒绝
+                        U->>E: 布尔决定与callId
+                        E->>H: approve 校验归属
+                        H->>P: finish 决定
+                    else 超时或取消
+                        H->>P: finish false
+                    end
+                    H->>H: 暂回running
+                    P-->>A: 清理请求后返回决定
+                end
+                alt 取消中断
+                    A-->>H: 抛错停止，不继续模型
+                    Note over A,H: 立即退出两层循环
+                else 未知工具解析失败或拒绝
+                    A->>A: 生成工具失败结果
+                else 只读或已批准
+                    A->>X: execute
+                    X->>X: 先校验Schema再执行
+                    X-->>A: 工具值或错误
+                end
+                A->>A: 未取消时回填tool消息
+            end
+        end
+    end
+    H->>H: success或error或cancelled
+    H->>S: 保存摘要历史
+    E->>H: 查询run终态
+    H-->>E: 结果与状态

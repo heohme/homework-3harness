@@ -1,0 +1,40 @@
+flowchart LR
+  subgraph ENTRY[接入层]
+    CLI[src/cli.js]
+    UI[public/app.js]
+    HTTP[src/server.js]
+  end
+  subgraph DOMAIN[编排与领域层]
+    H[core/harness.js]
+    LOOP[agent/loop.js]
+    MODEL[agent/model.js]
+  end
+  subgraph INFRA[基础设施层]
+    MAN[core/manifest.js]
+    VAL[core/validation.js]
+    STORE[core/store.js]
+    RUNNER[core/runner.js]
+    BROKER[core/broker.js]
+  end
+  subgraph EXT[插件扩展边界]
+    WORKER[src/plugin-worker.js]
+    ENTRYFILE[插件 entry.mjs]
+  end
+  CLI --> H
+  CLI --> HTTP
+  UI -->|HTTP JSON| HTTP
+  HTTP --> H
+  H --> LOOP
+  LOOP --> MODEL
+  LOOP -->|回调 execute 与 approve| H
+  H --> MAN
+  H --> STORE
+  H --> VAL
+  H --> RUNNER
+  H --> BROKER
+  RUNNER <-->|IPC| WORKER
+  WORKER --> ENTRYFILE
+  ENTRYFILE -->|ctx.call| WORKER
+  BROKER --> STORE
+  MAN --> VAL
+  MODEL --> VAL

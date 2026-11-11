@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocolVersion", "id", "name", "version", "description", "entry", "permissions", "configSchema", "tools"],
+  "properties": {
+    "protocolVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$", "maxLength": 32 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "author": { "type": "string", "maxLength": 100 },
+    "entry": { "type": "string", "pattern": "^[a-zA-Z0-9_./-]+\\.mjs$", "maxLength": 160 },
+    "permissions": { "type": "array", "uniqueItems": true, "maxItems": 3, "items": { "enum": ["workspace.read", "storage.read", "storage.write"] } },
+    "configSchema": { "type": "object" },
+    "tools": {
+      "type": "array", "minItems": 1, "maxItems": 20,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["name", "description", "inputSchema", "mutates"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,29}$" },
+          "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "inputSchema": { "type": "object" },
+          "mutates": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

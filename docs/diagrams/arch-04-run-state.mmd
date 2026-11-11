@@ -1,0 +1,16 @@
+stateDiagram-v2
+  [*] --> Running
+  state "running" as Running
+  state "awaiting_approval" as Awaiting
+  state "success" as Success
+  state "error" as Error
+  state "cancelled" as Cancelled
+  Running --> Awaiting: Agent 遇到 mutates 工具
+  Awaiting --> Running: 批准后执行或拒绝后回传工具错误
+  Running --> Success: task 返回且未取消
+  Running --> Error: 不可恢复错误或预算耗尽
+  Running --> Cancelled: 用户取消或任务总超时
+  Awaiting --> Cancelled: 取消先结束批准等待再进入终态
+  Success --> [*]
+  Error --> [*]
+  Cancelled --> [*]

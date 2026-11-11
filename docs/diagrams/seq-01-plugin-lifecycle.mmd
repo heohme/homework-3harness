@@ -1,0 +1,60 @@
+sequenceDiagram
+    actor U as 用户
+    participant E as CLI或HTTP
+    participant H as Harness
+    participant M as 清单快照
+    participant V as Schema校验
+    participant S as Store
+    participant F as 本地文件
+    participant A as 本机任务
+    U->>E: 提供分发目录
+    E->>H: inspect
+    H->>M: snapshot 来源
+    M->>F: 遍历并读取文件
+    M->>V: 校验清单并编译Schema
+    M-->>H: 清单与摘要
+    H-->>E: 预检信息
+    E-->>U: 展示权限与摘要
+    U->>E: 审查后确认信任
+    E->>H: install 信任与摘要
+    H->>M: 重算来源摘要
+    M-->>H: 新快照与摘要
+    alt 未信任或摘要变化
+        H-->>E: 拒绝安装
+    else 检查通过
+        H->>S: 获取写锁并查重
+        H->>V: 校验空配置并填默认
+        alt 默认配置有效
+            H->>H: 规范化实际目录
+        else 允许暂缺配置或目录
+            Note over H,V: 保留已填默认值，仍可安装
+        end
+        H->>M: writeSnapshot
+        M->>F: 复制文件快照
+        Note over M,F: 安装不导入或执行entry
+        H->>S: 原子保存禁用记录
+        S-->>H: 释放写锁
+        H-->>E: 已安装且授权为空
+    end
+    opt 用户补齐或修改配置
+        U->>E: 保存配置
+        E->>H: configure
+        H->>V: Schema校验与默认值
+        H->>H: 规范化工作区根
+        H->>A: cancelPlugin 本机取消
+        H->>S: 更新配置并撤权禁用
+        S-->>H: 保存后的记录
+    end
+    U->>E: 显式授予全部权限
+    E->>H: enable grants
+    H->>V: 检查完整配置
+    H->>H: 复算目录并比较配置
+    H->>M: 校验安装快照摘要
+    alt 权限配置或完整性不符
+        H-->>E: 拒绝启用
+    else 检查通过
+        H->>S: 锁内复查摘要与配置
+        H->>S: 保存启用与grants
+        H-->>E: 启用记录
+        Note over H,E: 默认有效时可直接enable
+    end

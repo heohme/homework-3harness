@@ -1,0 +1,17 @@
+{
+  "name": "@homework/local-harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LOOM — pure-local plugin-extensible AI Agent Harness",
+  "engines": { "node": ">=20.19.0" },
+  "scripts": {
+    "start": "node src/cli.js serve",
+    "cli": "node src/cli.js",
+    "check": "node scripts/check.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:ui": "node scripts/ui-smoke.mjs"
+  },
+  "dependencies": { "ajv": "8.17.1" },
+  "devDependencies": { "playwright": "1.56.1" }
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="LOOM 纯本地 AI Agent Harness，审查、授权并运行本机插件。">
+  <title>LOOM — 本地 Agent 工作台</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳至工作区</a>
+  <aside class="sidebar" aria-label="主导航">
+    <a class="brand" href="#plugins" aria-label="LOOM 本地 Agent 工作台">
+      <span class="loom-mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="wordmark">LOOM<span>LOCAL AGENT HARNESS</span></span>
+    </a>
+    <div class="sidebar-caption">工作台 <span class="mono">/ 01</span></div>
+    <nav>
+      <a href="#plugins" class="nav-link active" data-page="plugins" data-testid="nav-plugins" aria-current="page"><span class="nav-icon" aria-hidden="true">▦</span>插件管理<span class="nav-index">01</span></a>
+      <a href="#run" class="nav-link" data-page="run" data-testid="nav-run"><span class="nav-icon" aria-hidden="true">▷</span>运行台<span class="nav-index">02</span></a>
+      <a href="#history" class="nav-link" data-page="history" data-testid="nav-history"><span class="nav-icon" aria-hidden="true">≡</span>运行历史<span class="nav-index">03</span></a>
+      <a href="#settings" class="nav-link" data-page="settings" data-testid="nav-settings"><span class="nav-icon" aria-hidden="true">◎</span>模型设置<span class="nav-index">04</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="local-status"><span class="status-dot" id="connection-dot"></span><span id="connection-label">正在连接宿主</span></div>
+      <p>仅本机 · 显式授权<br>你的工具，你的工作流。</p>
+      <div class="sidebar-meta mono"><span>127.0.0.1</span><span id="app-version">LOCAL</span></div>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar"><span class="breadcrumb">工作台 <span>/</span> <strong id="breadcrumb-page">插件管理</strong></span><span class="topbar-local"><span class="tiny-dot"></span> LOCAL FIRST <span class="topbar-divider">/</span> 本地运行，边界可见</span></header>
+    <main id="main" tabindex="-1">
+      <div id="connection-error" class="notice danger" role="alert" hidden><div><strong>无法连接本地宿主</strong><p id="connection-error-text"></p></div><button id="retry-connection" class="button small" type="button">重新连接</button></div>
+      <div id="notification" class="notice" role="status" aria-live="polite" hidden><p id="notification-text"></p><button id="notification-retry" class="button small" type="button" hidden>重试</button><button id="dismiss-notification" class="icon-button" type="button" aria-label="关闭提示">×</button></div>
+
+      <section id="page-plugins" class="page" aria-labelledby="plugins-title">
+        <div class="page-heading"><div><div class="eyebrow">01 / PLUGIN REGISTRY</div><h1 id="plugins-title">让本机工具，彼此协作。</h1><p class="subtitle">审查代码、确认权限，再将插件接入你的 Agent。</p></div><button id="install-open" class="button primary" type="button" data-testid="install-plugin"><span aria-hidden="true">＋</span> 从本地目录安装</button></div>
+        <div class="stats-strip" aria-label="插件概览"><div><span class="stat-label">已安装插件</span><strong id="stat-installed">—</strong><span class="stat-unit">个本地快照</span></div><div><span class="stat-label">已启用</span><strong id="stat-enabled">—</strong><span class="stat-unit">个已授权插件</span></div><div><span class="stat-label">可用工具</span><strong id="stat-tools">—</strong><span class="stat-unit">个真实能力</span></div><div class="stat-note"><span class="status-pill neutral">信任边界</span><p>插件独立进程运行<br>不等同于恶意代码安全沙箱</p></div></div>
+        <div class="section-heading"><h2>已安装 <span id="installed-count" class="count">0</span></h2><span class="section-meta mono">INSTALLED / LOCAL SNAPSHOTS</span></div>
+        <div id="installed-plugins" data-testid="installed-plugins"><div class="empty-state"><div class="empty-symbol" aria-hidden="true">∷</div><h3>正在读取本机插件</h3><p>连接宿主后，这里会显示真实安装记录。</p></div></div>
+        <div class="section-heading catalog-heading"><div><h2>本地插件目录 <span id="catalog-count" class="count">0</span></h2><p>来自本应用的示例目录，不是在线市场。安装前仍需审查并信任源代码。</p></div><span class="section-meta mono">ON THIS MACHINE</span></div>
+        <div id="catalog-list" class="catalog-list" data-testid="catalog-list"></div>
+        <div class="footnote"><span aria-hidden="true">↳</span><p>插件安装为代码快照，不运行安装脚本、不下载依赖。配置修改会撤销授权；启用前需再次确认。</p></div>
+      </section>
+
+      <section id="page-run" class="page" aria-labelledby="run-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">02 / EXECUTION CONSOLE</div><h1 id="run-title">从指令，到可观察的执行。</h1><p class="subtitle">直接调用工具，或让真实模型组合已授权的能力。</p></div><span id="run-model-summary" class="status-pill neutral">正在读取模型设置</span></div>
+        <div class="run-layout">
+          <div class="run-input-panel panel">
+            <div class="tab-list" role="tablist" aria-label="运行模式"><button id="tab-agent" class="tab active" role="tab" aria-selected="true" aria-controls="agent-pane" type="button" data-testid="mode-agent">Agent 指令</button><button id="tab-tool" class="tab" role="tab" aria-selected="false" aria-controls="tool-pane" tabindex="-1" type="button" data-testid="mode-tool">直接运行工具</button></div>
+            <div id="agent-pane" role="tabpanel" aria-labelledby="tab-agent">
+              <form id="agent-form" data-testid="agent-form"><div class="form-heading"><span class="eyebrow">PROMPT</span><h2>你想完成什么？</h2></div><label for="agent-prompt">Agent 指令</label><textarea id="agent-prompt" name="prompt" rows="8" required maxlength="12000" placeholder="描述任务、目标和边界。Agent 将只使用已启用插件的工具。" data-testid="agent-prompt"></textarea><p class="field-help">真实请求模型，不生成演示结果。每次写入操作都会等待你批准。</p><div id="agent-remote-warning" class="notice warning compact" hidden>当前使用远程模型。指令、工具描述与工具返回内容可能发送至模型服务商。</div><button id="agent-submit" class="button primary full" type="submit" data-testid="agent-run">运行 Agent <span aria-hidden="true">↗</span></button><p class="form-footer">模型未连接？前往 <a href="#settings">模型设置</a> 检查本机服务。</p></form>
+            </div>
+            <div id="tool-pane" role="tabpanel" aria-labelledby="tab-tool" hidden>
+              <form id="tool-form" data-testid="tool-form"><div class="form-heading"><span class="eyebrow">TOOL CALL</span><h2>运行一个明确的工具</h2></div><label for="tool-select">已启用插件的工具</label><select id="tool-select" name="tool" required data-testid="tool-select"><option value="">暂无可用工具</option></select><p id="tool-description" class="field-help">先安装、配置并启用插件，工具才会出现在这里。</p><div id="tool-mutates-warning" class="notice warning compact" hidden>此工具会修改本地数据。运行前需要你的明确确认。</div><div id="tool-fields" class="schema-fields" data-testid="tool-fields"></div><details id="tool-advanced" class="advanced"><summary>高级 JSON 输入</summary><p class="field-help">展开后以 JSON 为准。复杂 Schema 可在此编辑；最终由宿主验证。</p><label for="tool-json">工具参数 JSON</label><textarea id="tool-json" class="code-input" rows="8" spellcheck="false" data-testid="tool-json">{}</textarea></details><button id="tool-submit" class="button primary full" type="submit" data-testid="tool-run" disabled>运行工具 <span aria-hidden="true">↗</span></button></form>
+            </div>
+          </div>
+          <section class="execution-panel panel" aria-labelledby="execution-title"><div class="panel-heading"><div><span class="eyebrow">LIVE TRACE</span><h2 id="execution-title">执行详情</h2></div><span id="execution-status" class="status-pill neutral">尚未运行</span></div><div class="execution-selector"><label for="run-select">查看运行</label><select id="run-select" data-testid="run-select"><option value="">暂无运行记录</option></select><button id="cancel-run" class="button small danger-outline" type="button" data-testid="cancel-run" hidden>取消运行</button></div><div id="execution-meta" class="execution-meta" hidden></div><div id="approval-container" data-testid="approval-container"></div><div id="execution-empty" class="empty-state execution-empty"><div class="trace-symbol" aria-hidden="true"><i></i><i></i><i></i></div><h3>你的下一次执行，从这里开始</h3><p>运行后可以查看真实事件、结果与错误。<br>没有模型或插件？先到设置与插件页完成连接。</p><a href="#plugins" class="text-link">管理插件 <span aria-hidden="true">→</span></a></div><div id="execution-content" hidden><div class="trace-heading"><h3>事件轨迹</h3><span class="mono">1s POLLING</span></div><ol id="event-list" class="event-list" data-testid="event-list"></ol><div id="result-block" class="result-block" hidden><div class="trace-heading"><h3 id="result-heading">运行结果</h3><button id="copy-result" class="button small" type="button">复制结果</button></div><pre id="run-result" tabindex="0" data-testid="run-result"></pre></div><div id="run-error" class="notice danger" role="alert" hidden><div><strong id="run-error-code"></strong><p id="run-error-message"></p><p id="run-error-help" class="field-help"></p></div><button id="retry-run" class="button small" type="button">重试运行</button></div><p id="run-summary-note" class="field-help" hidden>这是重启前的历史摘要。完整输入、事件和结果不会写入磁盘，无法恢复。</p></div></section>
+        </div>
+      </section>
+
+      <section id="page-history" class="page" aria-labelledby="history-title" hidden><div class="page-heading"><div><div class="eyebrow">03 / RUN ARCHIVE</div><h1 id="history-title">每一步，都有迹可循。</h1><p class="subtitle">磁盘只保留运行摘要，完整输入与结果仅存于当前宿主内存。</p></div><button id="clear-history" class="button danger-outline" type="button" data-testid="clear-history">清空运行历史</button></div><div class="panel history-panel"><div class="panel-heading"><h2>运行记录 <span id="history-count" class="count">0</span></h2><span class="section-meta mono">NEWEST FIRST</span></div><div id="history-list" data-testid="history-list"></div></div><p id="history-active-note" class="field-help" hidden>有任务正在运行或等待批准，暂时不能清空历史。请先完成或取消任务。</p></section>
+
+      <section id="page-settings" class="page" aria-labelledby="settings-title" hidden><div class="page-heading"><div><div class="eyebrow">04 / MODEL CONNECTION</div><h1 id="settings-title">模型由你选择，数据边界也是。</h1><p class="subtitle">默认连接本机 Ollama。使用远程端点前，必须确认数据外发。</p></div><span class="status-pill neutral">真实 HTTP 连接</span></div><div class="settings-layout"><form id="model-form" class="panel settings-form" data-testid="model-form"><div class="panel-heading"><h2>模型连接</h2><span class="mono section-meta">CONFIGURATION</span></div><div class="form-body"><label for="model-provider">服务协议</label><select id="model-provider" name="provider"><option value="ollama">Ollama（默认本机）</option><option value="openai">OpenAI 兼容 API</option></select><label for="model-base-url">服务地址</label><input id="model-base-url" name="baseUrl" type="url" required maxlength="300" placeholder="http://127.0.0.1:11434" autocomplete="off" data-testid="model-base-url"><p class="field-help">填写真实模型服务地址。Ollama 仅使用本机地址；远程兼容 API 必须使用 HTTPS。</p><label for="model-name">模型名称</label><input id="model-name" name="model" required maxlength="120" placeholder="qwen3:8b" autocomplete="off" data-testid="model-name"><label for="model-max-steps">最大 Agent 步数</label><input id="model-max-steps" name="maxSteps" type="number" min="1" max="12" step="1" required><p class="field-help">有界执行，最多 12 步。执行中仍可取消。</p><div id="remote-notice" class="notice warning compact" hidden><div><strong>这个地址不是本机回环端点</strong><p>指令、工具说明和返回内容可能离开本机。请仅连接你信任的服务。</p></div></div><label class="check-row" for="model-allow-remote"><input id="model-allow-remote" name="allowRemote" type="checkbox" data-testid="allow-remote"><span>允许模型数据外发<span class="field-help">仅在明确同意时开启；保存时会再次要求确认。</span></span></label><div class="form-actions"><button id="model-save" class="button primary" type="submit" data-testid="model-save">保存设置</button><button id="model-test" class="button" type="button" data-testid="model-test">测试已保存连接</button></div><p id="model-dirty-note" class="field-help" hidden>存在未保存更改。连接测试使用宿主已保存的设置。</p><div id="model-test-result" class="notice compact" role="status" hidden></div></div></form><aside class="settings-notes"><div class="editorial-note"><span class="eyebrow">01 / LOCAL BY DEFAULT</span><h2>本机优先，不默默外发。</h2><p>本地模型服务需要独立安装并启动。确保服务地址可达、指定模型已准备好，再运行连接测试。</p><code>http://127.0.0.1:11434</code></div><div class="editorial-note"><span class="eyebrow">02 / SECRETS STAY ON HOST</span><h2>密钥不进入浏览器。</h2><p>API key 只从宿主环境变量读取。这里没有密钥输入框，也不会返回密钥内容。</p><code>HARNESS_MODEL_API_KEY</code><p id="model-key-status" class="field-help">正在读取密钥配置状态</p><p class="field-help">如需修改，请在启动宿主前设置环境变量并重启服务。不要将密钥放入 URL。</p></div><div class="editorial-note"><span class="eyebrow">03 / HONEST FAILURE</span><h2>未连通，就明确失败。</h2><p>模型不可达、名称错误或认证失败会显示真实错误；LOOM 不会以预设回答替代执行。</p></div></aside></div></section>
+      <footer class="workspace-footer"><span>LOOM <span class="mono">/</span> 小工具，清晰的边界。</span><span class="mono">NO CLOUD REQUIRED</span></footer>
+    </main>
+  </div>
+
+  <dialog id="action-dialog" aria-labelledby="dialog-title" data-testid="action-dialog"><div class="dialog-heading"><span id="dialog-eyebrow" class="eyebrow">LOCAL ACTION</span><button id="dialog-close" class="icon-button" type="button" aria-label="关闭对话框">×</button></div><h2 id="dialog-title"></h2><div id="dialog-content"></div><p id="dialog-error" class="dialog-error" role="alert" hidden></p><div class="dialog-actions"><button id="dialog-cancel" class="button" type="button">取消</button><button id="dialog-confirm" class="button primary" type="button" data-testid="dialog-confirm">确认</button></div></dialog>
+  <noscript><div class="noscript">LOOM 控制台需要启用 JavaScript。执行与授权只通过本机宿主 API 完成。</div></noscript>
+</body>
+</html>

@@ -1,0 +1,13 @@
+stateDiagram-v2
+  [*] --> NotInstalled
+  state "未安装" as NotInstalled
+  state "已预检但未安装" as Inspected
+  state "已安装且禁用" as Disabled
+  state "已启用且授权" as Enabled
+  NotInstalled --> Inspected: inspect 只读校验与摘要
+  Inspected --> Disabled: trusted 且 digest 一致
+  Disabled --> Disabled: configure 校验并保存
+  Disabled --> Enabled: 配置有效且显式 grants 全覆盖
+  Enabled --> Disabled: configure 或 disable 撤权并取消
+  Disabled --> NotInstalled: uninstall 等运行收尾后删除
+  Inspected --> Inspected: 内容变化须重新预检

@@ -1,0 +1,60 @@
+{
+  "protocolVersion": 1,
+  "id": "local-notes",
+  "name": "本地笔记",
+  "version": "1.0.0",
+  "description": "通过插件隔离存储保存、列出和检索本地笔记，不访问网络。",
+  "author": "LOOM examples",
+  "entry": "index.mjs",
+  "permissions": ["storage.read", "storage.write"],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "notebook": {"type": "string", "minLength": 1, "maxLength": 80, "default": "Inbox", "description": "当前笔记本名称"},
+      "maxNotes": {"type": "integer", "minimum": 1, "maximum": 1000, "default": 200, "description": "整个插件存储的总笔记上限；满额时拒绝新增"}
+    },
+    "required": ["notebook", "maxNotes"],
+    "additionalProperties": false
+  },
+  "tools": [
+    {
+      "name": "add",
+      "description": "向当前笔记本新增一条本地持久化笔记；写入必须获得用户批准。",
+      "mutates": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string", "minLength": 1, "maxLength": 160},
+          "content": {"type": "string", "minLength": 1, "maxLength": 8000},
+          "tags": {"type": "array", "maxItems": 12, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 40}, "default": []}
+        },
+        "required": ["title", "content"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "search",
+      "description": "在当前笔记本的标题、正文和标签中做不区分大小写的字面量检索。",
+      "mutates": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string", "minLength": 1, "maxLength": 200},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 50, "default": 20}
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list",
+      "description": "按最近新增顺序列出当前笔记本中的笔记，只读。",
+      "mutates": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 50, "default": 20}},
+        "additionalProperties": false
+      }
+    }
+  ]
+}
